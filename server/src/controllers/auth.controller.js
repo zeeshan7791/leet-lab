@@ -6,14 +6,16 @@ import { UserRole } from "../generated/prisma/index.js";
 const register = async (req, res) => {
   console.log(req.body, "body-----------------");
   const { email, name, password } = req.body;
+
   try {
+    console.log("before db")
     const existingUser = await db.user.findUnique({
       where: {
         email,
       },
     });
-    // console.log(existingUser,'existing user---------')
-
+    console.log(existingUser,'existing user---------')
+console.log("after db")
     if (existingUser) {
       return res.status(400).json({ error: "User already exist" });
     }
@@ -59,11 +61,13 @@ const login = async (req, res) => {
   console.log(req.body, "login body");
   const { email, password } = req.body;
   try {
+    console.log("before----")
     const user = await db.user.findUnique({
       where: {
         email,
       },
     });
+    console.log("after-------")
     console.log(user);
     if (!user) {
       res.status(401).json("user not found ");
