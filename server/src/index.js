@@ -6,6 +6,7 @@ import authRoutes from "./routes/auth.routes.js";
 import problemRoutes from "./routes/problem.routes.js";
 import executeRoutes from "./routes/executeCode.routes.js";
 import submissionRoutes from "./routes/submission.routes.js";
+import playlistRoutes from "./routes/playlist.routes.js";
 dotenv.config()
 const app=express()
 const prisma = new PrismaClient();
@@ -22,6 +23,7 @@ app.use(cookieParser())
   app.use("/api/v1/problems",problemRoutes)
   app.use("/api/v1/execute-code",executeRoutes)
   app.use("/api/v1/submission",submissionRoutes)
+  app.use("/api/v1/playlist",playlistRoutes)
 app.listen(PORT,()=>{
     console.log(`server is running on port ${PORT}`)
 })
