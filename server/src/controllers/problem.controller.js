@@ -168,4 +168,36 @@ export const deleteProblem = async (req, res) => {
     });
   } 
 };
-export const getAllProblemsSolvedByUser = async (req, res) => {};
+export const getAllProblemsSolvedByUser = async (req, res) => {
+  try {
+    const problems=await db.problem.findMany({
+      where:{
+        solvedBy:{
+          some:{
+            userId:req.user.id
+          }
+        }
+
+      },
+      include:{
+      solvedBy:{
+          where:{
+userId:req.user.id
+        }
+      }
+    }
+    })
+
+    return res.status(200).json({
+      success:true,
+      message:"Problems fetched successfully",
+      problems
+    })
+  } catch (error) {
+     return res.status(500).json({
+      success:false,
+    error:"Failed to fetch problems",
+ 
+    })
+  }
+};
