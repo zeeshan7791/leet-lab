@@ -29,7 +29,10 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  problems Problem[]
+  problems      Problem[]
+  Submission    Submission[]
+  ProblemSolved ProblemSolved[]
+  playlists     Playlist[]
 }
 
 enum Difficutly {
@@ -42,7 +45,7 @@ model Problem {
   id          String     @id @default(uuid())
   title       String
   description String
-  difficulty  Difficulty
+  difficulty  Difficutly
   tags        String[] // ["tag1", "tag2", "tag3"]
   userId      String
   examples    Json
@@ -58,9 +61,10 @@ model Problem {
   updatedAt DateTime @updatedAt
 
   //  Relationship
-  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  submission Submission[]
-  solvedBy   ProblemSolved[]
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  submission       Submission[]
+  solvedBy         ProblemSolved[]
+  problemsPlaylist ProblemInPlayList[]
 }
 
 model Submission {
@@ -118,4 +122,29 @@ model ProblemSolved {
   problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
 
   @@unique([userId, problemId])
+}
+
+model Playlist {
+  id          String              @id @default(uuid())
+  name        String
+  description String?
+  userId      String
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  problems    ProblemInPlayList[]
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([name, userId])
+}
+
+model ProblemInPlayList {
+  id         String   @id @default(uuid())
+  playlistId String
+  problemId  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  problem    Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@unique([playlistId, problemId])
 }

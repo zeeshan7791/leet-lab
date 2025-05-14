@@ -20,16 +20,19 @@ enum UserRole {
 }
 
 model User {
-  id        String    @id @default(uuid())
+  id        String   @id @default(uuid())
   name      String?
-  email     String    @unique
+  email     String   @unique
   image     String?
   password  String
-  role      UserRole  @default(USER)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  
-  problems  Problem[]
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  problems      Problem[]
+  Submission    Submission[]
+  ProblemSolved ProblemSolved[]
+  playlists Playlist[]
 }
 
 enum Difficutly {
@@ -38,14 +41,11 @@ enum Difficutly {
   Hard
 }
 
-
-
-
 model Problem {
   id          String     @id @default(uuid())
   title       String
   description String
-  difficulty  Difficulty
+  difficulty  Difficutly
   tags        String[] // ["tag1", "tag2", "tag3"]
   userId      String
   examples    Json
@@ -64,6 +64,7 @@ model Problem {
   user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   submission Submission[]
   solvedBy   ProblemSolved[]
+  problemsPlaylist ProblemInPlayList[]
 }
 
 model Submission {
@@ -121,4 +122,28 @@ model ProblemSolved {
   problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
 
   @@unique([userId, problemId])
+}
+
+
+model Playlist {
+  id String @id @default(uuid())
+  name String
+  description String?
+  userId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  problems ProblemInPlayList[]
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([name,userId])
+}
+model ProblemInPlayList {
+  id String @id @default(uuid())
+  playlistId String
+  problemId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  playlist Playlist @relation(fields:[playlistId],references:[id],onDelete:Cascade)
+  problem Problem @relation(fields:[problemId],references:[id],onDelete:Cascade)
+  @@unique([playlistId,problemId]) 
+
 }
