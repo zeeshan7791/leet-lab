@@ -103,6 +103,7 @@ const login = async (req, res) => {
   }
 };
 const logout = async (req, res) => {
+  console.log('hello logout')
   try {
     res.clearCookie("leet", {
       httpOnly: true,
@@ -119,6 +120,7 @@ const logout = async (req, res) => {
 };
 
 const check = async (req, res) => {
+  console.log("hello")
   try {
     res
       .status(200)
