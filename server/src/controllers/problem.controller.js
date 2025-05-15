@@ -13,6 +13,7 @@ export const createProblem = async (req, res) => {
     referenceSolutions,
   } = req.body;
 
+
   // going to check the user role once again
   if(req.user.role!=="ADMIN"){
     return res.status(403).json({
@@ -29,6 +30,7 @@ export const createProblem = async (req, res) => {
           .status(400)
           .json({ error: `Language ${language} is not supported` });
       }
+    
 
       //
       const submissions = testcases.map(({ input, output }) => ({
@@ -37,21 +39,18 @@ export const createProblem = async (req, res) => {
         stdin: input,
         expected_output: output,
       }));
-console.log(submissions,'submissions--------')
-console.log("before-================")
+      
+
       const submissionResults = await submitBatch(submissions);
-      console.log(submissionResults,'submissionresult------after')
+     
 
       const tokens = submissionResults.map((res) => res.token);
-console.log(tokens.join(","),'token------------')
+
       const results = await pollBatchResults(tokens);
 
       for (let i = 0; i < results.length; i++) {
         const result = results[i];
-        console.log("Result-----", result);
-        console.log(
-          `Testcase ${i + 1} and Language ${language} ----- result ${JSON.stringify(result.status.description)}`
-        );
+      
         if (result.status.id !== 3) {
           return res.status(400).json({
             error: `Testcase ${i + 1} failed for language ${language}`,
@@ -59,6 +58,7 @@ console.log(tokens.join(","),'token------------')
         }
       }
     }
+     
 
     const newProblem = await db.problem.create({
       data: {
@@ -75,6 +75,7 @@ console.log(tokens.join(","),'token------------')
       },
     });
 
+
     return res.status(201).json({
       sucess: true,
       message: "Message Created Successfully",
@@ -90,7 +91,16 @@ console.log(tokens.join(","),'token------------')
 
 export const getAllProblems = async (req, res) => {
   try {
-    const problems=await db.problem.findMany();
+    const problems=await db.problem.findMany({
+      include:{
+        solvedBy:{
+          where:{
+            userId:req.user.id
+          }
+        }
+
+      }
+    });
     if(!problems){
       return res.status(404).json({
         error: "No Problem Found",
@@ -109,6 +119,7 @@ export const getAllProblems = async (req, res) => {
 };
 export const getProblemById = async (req, res) => {
   const {id}=req.params
+  console.log(id,'backend id of problem----------')
   try {
     const problem=await db.problem.findUnique({
 where:{
