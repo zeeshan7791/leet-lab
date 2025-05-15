@@ -125,7 +125,7 @@ export const executionCode = async (req, res) => {
     await db.testCaseResult.createMany({
         data:testCaseResults
     })
- console.log("test case result done ------------")
+
     // get submissionwithtestcase
     const submissionWithTestCase=await db.submission.findUnique({
         where:{
@@ -137,7 +137,7 @@ export const executionCode = async (req, res) => {
         
     })
    
- console.log("submission with testcase done ------------")
+ console.log(testCaseResults,"submission with testcase done ------------")
 
     return res.status(200).json({
         success:true,
