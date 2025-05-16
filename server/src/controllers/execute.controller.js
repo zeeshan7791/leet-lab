@@ -136,8 +136,8 @@ export const executionCode = async (req, res) => {
             }
         
     })
-   
- console.log(testCaseResults,"submission with testcase done ------------")
+   console.log("-------------------------------------------------")
+console.log(submissionWithTestCase,'submission with testcase-------------------')
 
     return res.status(200).json({
         success:true,
