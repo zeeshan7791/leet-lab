@@ -118,6 +118,7 @@ export const getAllProblems = async (req, res) => {
   }
 };
 export const getProblemById = async (req, res) => {
+  
   const {id}=req.params
   console.log(id,'backend id of problem----------')
   try {
@@ -143,16 +144,97 @@ where:{
   }
 };
 export const updateProblemById = async (req, res) => {
- const {id}=req.params
-  try {
-    const problem=await db.problem.findUnique({
-      where:{id}
-    })
-    if(!problem){
+    const {
+    title,
+    description,
+    difficulty,
+    tags,
+    examples,
+    constraints,
+    testcases,
+    codeSnippets,
+    referenceSolutions,
+  } = req.body;
 
-    }
-  } catch (error) {
+ const {id}=req.params
+console.log(id,'value in from front end')
+
+  try {
+        for (const [language, solutionCode] of Object.entries(referenceSolutions)) {
+      const languageId = getJudge0LanguageId(language);
+
+      if (!languageId) {
+        return res
+          .status(400)
+          .json({ error: `Language ${language} is not supported` });
+      }
     
+
+      //
+      const submissions = testcases.map(({ input, output }) => ({
+        source_code: solutionCode,
+        language_id: languageId,
+        stdin: input,
+        expected_output: output,
+      }));
+      
+
+      const submissionResults = await submitBatch(submissions);
+     
+
+      const tokens = submissionResults.map((res) => res.token);
+
+      const results = await pollBatchResults(tokens);
+
+      for (let i = 0; i < results.length; i++) {
+        const result = results[i];
+      
+        if (result.status.id !== 3) {
+          return res.status(400).json({
+            error: `Testcase ${i + 1} failed for language ${language}`,
+          });
+        }
+      }
+    }
+     const findProblem=await db.problem.findUnique({
+      where:{id},
+     })
+
+   if(!findProblem){
+   return res.status(404).json({
+      sucess: true,
+      message: "Problem not found",
+    });
+    }
+  
+   const updateProblem = await db.problem.update({
+  where: { id },
+  data: {
+    title:title?title:findProblem.title,
+    description:description?description:findProblem.description,
+    difficulty:difficulty?difficulty:findProblem.difficulty,
+    tags:tags?tags:tags.difficulty,
+    examples:examples?examples:findProblem.examples,
+    constraints:constraints?constraints:findProblem.constraints,
+    testcases:testcases?testcases:findProblem.testcases,
+    codeSnippets:codeSnippets?codeSnippets:findProblem.codeSnippets,
+    referenceSolutions:referenceSolutions?referenceSolutions:findProblem.referenceSolutions,
+    userId: req.user.id,
+  },
+});
+   
+
+      return res.status(201).json({
+      sucess: true,
+      message: "Problem updated successfully",
+      problem: updateProblem,
+    });
+  } catch (error) {
+       return res.status(500).json({
+      sucess: false,
+      message: "Failed to update problem",
+     
+    });
   } 
 };
 export const deleteProblem = async (req, res) => {
