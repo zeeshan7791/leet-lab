@@ -5,7 +5,7 @@ import Navbar from '../components/Navbar'
 
 const Layout = () => {
   return (
-    <div>
+    <div className=''>
         <Navbar/>
         <Outlet/>
     </div>
