@@ -2,7 +2,8 @@ import React, { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Bookmark, PencilIcon, Trash, TrashIcon, Plus } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
-import { useProblemStore } from "../store/useProblemStore";
+import toast from "react-hot-toast";
+import { axiosInstance } from "../lib/axios";
 
 const ProblemTable = ({ problems }) => {
   const { authUser } = useAuthStore();
@@ -25,13 +26,13 @@ const ProblemTable = ({ problems }) => {
   }, [problems]);
 
 
-  const filteredProblems = useMemo(()=>{
+  let filteredProblems = useMemo(()=>{
     return (problems || [])
     .filter((problem)=> problem.title.toLowerCase().includes(search.toLowerCase()))
     .filter((problem)=>difficulty === "ALL" ? true: problem.difficulty === difficulty)
      .filter((problem) =>
         selectedTag === "ALL" ? true : problem.tags?.includes(selectedTag)
-      );
+      )
   },[problems , search , difficulty , selectedTag])
 
   const itemsPerPage = 5;
@@ -50,7 +51,22 @@ const ProblemTable = ({ problems }) => {
     navigation(`/update-problem/${id}`)
 
   }
-  const handleDelete = (id)=>{}
+    const [isLoading , setIsLoading] = useState(false);
+  
+  const handleDelete = async(id)=>{
+    console.log(id,'id in delete')
+    setIsLoading(true)
+    try {
+       const res = await axiosInstance.delete(`/problems/delete-problem/${id}`)
+     
+       toast.success(res.data.message)
+
+      
+    } catch (error) {
+      console.log(error)
+    }
+
+  }
 
   const handleAddToPlaylist = (id)=>{}
 
