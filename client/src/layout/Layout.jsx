@@ -5,7 +5,7 @@ import Navbar from '../components/Navbar'
 
 const Layout = () => {
   return (
-    <div className=''>
+    <div className='w-full'>
         <Navbar/>
         <Outlet/>
     </div>
