@@ -6,23 +6,18 @@ import { Bookmark, PencilIcon, Trash, TrashIcon, Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
-import {
-  Loader2,Loader
-} from "lucide-react";
-import { useAuthStore } from "../store/useAuthStore";
-import { useEffect } from "react";
+import { Loader2, Loader } from "lucide-react";
+import PlaylistTable from "../components/PlaylistTable";
+import { usePlaylistStore } from "../store/usePlaylistStore";
 const playlistSchema = z.object({
   name: z.string().min(4, "Name must be atleast of 4 characters"),
-  description:z.string()
+  description: z.string(),
 });
-
 const PlaylistPage = () => {
-
-
   const [loading, setLoading] = useState(false);
-  const [allPlaylists, setAllPlaylists] = useState([]);
+    const {playlist,getAllPlaylists}=usePlaylistStore()
+console.log(playlist,'value in edit---------')
 
-    const { authUser } = useAuthStore();
   const {
     register,
     handleSubmit,
@@ -31,17 +26,34 @@ const PlaylistPage = () => {
     resolver: zodResolver(playlistSchema),
   });
 
-  const fetchPlaylists = async () => {
+  const onSubmit = async (data) => {
+    console.log(data, "value in data--------");
     try {
       setLoading(true);
-      const res = await axiosInstance.get("http://localhost:8080/api/v1/playlist");
-      console.log(res.data.playlists,'value in playlists-------')
-      setAllPlaylists(res.data.playlists);
+      if(playlist.id){
+        console.log("hitt the update----------")
+       const res = await axiosInstance.put(`/playlist/update-playlist/${playlist.id}`, {
+        name: data.name,
+        description: data.description,
+      });
+       toast.success(res.data.message)
+      }
+      else{
+      const res = await axiosInstance.post("/playlist/create-playlist", {
+        name: data.name,
+        description: data.description,
+      });
+       toast.success(res.data.message)
+    }
+getAllPlaylists()
+     ;
+      setLoading(false);
     } catch (error) {
-      if (error.response?.data?.error) {
-        toast.error(error.response.data.error); // Show custom backend error
+      if (error.response && error.response.data && error.response.data.error) {
+        toast.error(error.response.data.error); // Show the custom backend error
+        console.log(error.response.data.error)
       } else {
-        toast.error("Something went wrong.");
+        toast.error(error.message);
       }
     } finally {
       setLoading(false);
@@ -49,86 +61,7 @@ const PlaylistPage = () => {
   };
 
 
-  useEffect(() => {
-  
-  fetchPlaylists();
-}, []);
-  const onSubmit = async (data) => {
- 
-console.log(data,'value in data--------')
-    try {
-      setLoading(true);
-      const res = await axiosInstance.post("/playlist/create-playlist", {
-       name: data.name,
-       description:data.description
-      });
-     fetchPlaylists()
-      toast.success(res.data.message);
-      setLoading(false);
-    } catch (error) {
-     
-       if (error.response && error.response.data && error.response.data.error) {
-    toast.error(error.response.data.error); // Show the custom backend error
-  } else {
-    toast.error(error.message);
-  }
-    } finally {
-      setLoading(false);
-    }
-  };
- 
-
-
- if(!allPlaylists){
-    return (
-      <div className="flex items-center justify-center h-screen">
-          <Loader className="size-10 animate-spin"/>
-      </div>
-    )
-  }
-
-  // let allPlaylists=[{
-  //   id:1,
-  //   name:"Loops",
-  //   description:"this is for loops"
-  // },{
-  //   id:2,
-  //   name:"Conditions",
-  //   description:"this is for Condition"
-  // },{
-  //   id:3,
-  //   name:"Objects",
-  //   description:"this is for Objects"
-  // },{
-  //   id:4,
-  //   name:"Functions",
-  //   description:"this is for functions"
-  // }]
-
-  const handleDeletePlaylist=async(id)=>{
-    try {
-        setLoading(true);
-      const res = await axiosInstance.delete(`/playlist/${id}`);
-   
-      toast.success(res.data.message);
-         fetchPlaylists()
-      setLoading(false);
-      
-    } catch (error) {
-     
-       if (error.response && error.response.data && error.response.data.error) {
-    toast.error(error.response.data.error); // Show the custom backend error
-  } else {
-    toast.error(error.message);
-  }
-    } finally {
-      setLoading(false);
-    }
-  }
-  const handleAddToPlaylist=()=>{}
-  const handleEditProblem=()=>{}
   return (
-
     <div className="h-screen w-full  ">
       <div className="flex flex-col justify-center items-center p-6 sm:p-12">
         <div className="w-full max-w-md space-y-8">
@@ -141,6 +74,7 @@ console.log(data,'value in data--------')
               <div className="relative">
                 <input
                   type="name"
+                  defaultValue={playlist?.name}
                   {...register("name")}
                   className={`input input-bordered w-full pl-10 ${
                     errors.name ? "input-error" : ""
@@ -163,6 +97,7 @@ console.log(data,'value in data--------')
               <div className="relative">
                 <input
                   type="text"
+                  defaultValue={playlist?.description}
                   {...register("description")}
                   className={`input input-bordered w-full pl-10 ${
                     errors.description ? "input-error" : ""
@@ -184,8 +119,10 @@ console.log(data,'value in data--------')
                   <Loader2 className="h-5 w-5 animate-spin" />
                   Loading...
                 </>
-              ) : (
+              ) :!playlist? (
                 "Create"
+              ):(
+                "Update"
               )}
             </button>
           </form>
@@ -194,81 +131,7 @@ console.log(data,'value in data--------')
 
       {/* table----------- */}
       <h2 className="text-center text-2xl font-bold">All Playlists</h2>
-        <div className="overflow-x-auto rounded-xl shadow-md">
-        <table className="table table-zebra table-lg bg-base-200 text-base-content">
-          <thead className="bg-base-200">
-            <tr>
-           
-              <th>Name</th>
-              <th>Description</th>
-
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-{
-    allPlaylists.length > 0 ? (
-          allPlaylists.map((playlist,idx)=>{
-            
-
-               return (
-                  <tr key={playlist.id}>
-                    <td>
-                      <Link to={`/playlist/${playlist.id}`} className="font-semibold hover:underline">
-                        {playlist.name}
-                      </Link>
-                    </td>
-                    <td>
-                      <div className="flex flex-wrap gap-1">
-                     
-                          <span
-                            className=" text-xl "
-                          >
-                            {playlist.description}
-                          </span>
-                      
-                      </div>
-                    </td>
-                  
-                    <td>
-                      <div className="flex flex-col md:flex-row gap-2 items-start md:items-center">
-                        {authUser?.role === "ADMIN" && (
-                          <div className="flex gap-2" key={playlist.id}>
-                            <button
-                              onClick={() => handleDeletePlaylist(playlist.id)}
-                              className="btn btn-sm btn-error"
-                            >
-                              <TrashIcon className="w-4 h-4 text-white" />
-                            </button>
-                            <button onClick={()=>handleEditProblem(playlist.id)} className="btn btn-sm btn-warning">
-                              <PencilIcon className="w-4 h-4 text-white" />
-                            </button>
-                          </div>
-                        )}
-                          <button
-                                                  className="btn btn-sm btn-outline flex gap-2 items-center"
-                                                
-                                                   onClick={()=>openModal(playlist.id)}
-                                                >
-                                                  <Bookmark className="w-4 h-4" />
-                                                  <span className="hidden sm:inline">Save to Playlist</span>
-                                                </button>
-                       
-                      </div>
-                    </td>
-                  </tr>
-                );
-
-          })
-    ) : ( <tr>
-                <td colSpan={5} className="text-center py-6 text-gray-500">
-                  No Playlist found.
-                </td>
-              </tr>)
-}
-          </tbody>
-        </table>
-      </div>
+      <PlaylistTable  />
     </div>
   );
 };
