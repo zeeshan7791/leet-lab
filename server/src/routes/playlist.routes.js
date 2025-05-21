@@ -12,10 +12,10 @@ import {
 
 const playlistRoutes = express.Router();
 
-playlistRoutes.get("/", authMiddleware, getAllPlaylistsDetails);
+playlistRoutes.get("/all-playlists", authMiddleware, getAllPlaylistsDetails);
 playlistRoutes.post("/create-playlist", authMiddleware, createPlaylist);
-playlistRoutes.get("/:playlistId", authMiddleware, getPlaylistDetails);
-playlistRoutes.put("update-playlist/:id", authMiddleware, updatePlaylist);
+playlistRoutes.get("/get-playlist/:playlistId", authMiddleware, getPlaylistDetails);
+playlistRoutes.put("/update-playlist/:playlistId", authMiddleware, updatePlaylist);
 playlistRoutes.post(
   "/:playlistId/add-problem",
   authMiddleware,
