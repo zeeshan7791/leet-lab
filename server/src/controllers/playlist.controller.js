@@ -65,8 +65,9 @@ export const getAllPlaylistsDetails = async (req, res) => {
   }
 };
 export const getPlaylistDetails = async (req, res) => {
+  console.log("hello--")
   const { playlistId } = req.params;
-
+console.log(playlistId,'value in playulist-------diidiiiiiiiiii')
   try {
     const playlist = await db.playlist.findUnique({
       where: {
@@ -98,7 +99,49 @@ export const getPlaylistDetails = async (req, res) => {
   }
 };
 
-export const updatePlaylist = async (req, res) => {};
+export const updatePlaylist = async (req, res) => {
+  const { name, description } = req.body;
+  const { playlistId } = req.params; // assuming playlistId comes from the route params
+const userId=req.user.id
+  try {
+    const playlist = await db.playlist.findUnique({
+      where: {
+        id: playlistId,
+        userId,
+      },
+    });
+
+    if (!playlist) {
+      return res.status(404).json({
+        success: false,
+        message: "Playlist not found",
+      });
+    }
+
+    const updatedPlaylist = await db.playlist.update({
+      where: { id: playlistId },
+      data: {
+        name:name?name:playlist.name,
+        description:description?description:playlist.description,
+        userId,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Playlist updated successfully",
+      playlist: updatedPlaylist,
+    });
+
+  } catch (error) {
+    console.error(error); // optional: log error for debugging
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update playlist",
+    });
+  }
+};
+
 export const addProblemToPlaylist = async (req, res) => {
   const { playlistId } = req.params;
   const { problemIds } = req.body;
