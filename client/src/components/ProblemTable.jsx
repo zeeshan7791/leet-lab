@@ -9,7 +9,7 @@ const ProblemTable = ({ problems }) => {
   const { authUser } = useAuthStore();
    
   const navigation=useNavigate()
-
+  const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [difficulty, setDifficulty] = useState("ALL");
   const [selectedTag, setSelectedTag] = useState("ALL");
@@ -68,14 +68,36 @@ const ProblemTable = ({ problems }) => {
 
   }
 
-  const handleAddToPlaylist = (id)=>{}
+  const handleAddToPlaylist =async (id)=>{
+    try {
+        setLoading(true);
+      const res = await axiosInstance.delete(`/playlist/${id}`);
+   
+      toast.success(res.data.message);
+      setLoading(false);
+      
+    } catch (error) {
+     
+       if (error.response && error.response.data && error.response.data.error) {
+    toast.error(error.response.data.error); // Show the custom backend error
+  } else {
+    toast.error(error.message);
+  }
+    } finally {
+      setLoading(false);
+    }
+  }
 
+  const openModal=(id)=>{
+    document.getElementById('my_modal_1').showModal()
+    console.log(id,"playlist---------pr")
+  }
   return (
     <div className="w-full max-w-6xl mx-auto mt-10">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Problems</h2>
-        <button className="btn btn-primary gap-2" onClick={() => {}}>
-          <Plus className="w-4 h-4" />
+        <button className="btn btn-primary gap-2" onClick={() =>navigation("/playlist")}>
+        <Plus className="w-4 h-4" />
           Create Playlist
         </button>
       </div>
@@ -113,6 +135,7 @@ const ProblemTable = ({ problems }) => {
           ))}
         </select>
       </div>
+      
 
       <div className="overflow-x-auto rounded-xl shadow-md">
         <table className="table table-zebra table-lg bg-base-200 text-base-content">
@@ -188,7 +211,8 @@ const ProblemTable = ({ problems }) => {
                         )}
                         <button
                           className="btn btn-sm btn-outline flex gap-2 items-center"
-                          onClick={() => handleAddToPlaylist(problem.id)}
+                        
+                           onClick={()=>openModal(problem.id)}
                         >
                           <Bookmark className="w-4 h-4" />
                           <span className="hidden sm:inline">Save to Playlist</span>
