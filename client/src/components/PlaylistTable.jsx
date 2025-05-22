@@ -1,16 +1,40 @@
 import React, { useEffect } from 'react'
 import { usePlaylistStore } from '../store/usePlaylistStore'
 import { Bookmark, PencilIcon, Trash, TrashIcon,Loader} from "lucide-react";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
+import { useState } from 'react';
+import { useMemo } from 'react';
 
 const PlaylistTable = () => {
-    const {playlists,playlist,getAllPlaylists,isPlaylistsLoading,deletePlaylist,isDeletePlaylistLoading,getPlaylistById}=usePlaylistStore()
+    const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+    const {playlists,getAllPlaylists,isPlaylistsLoading,deletePlaylist,isDeletePlaylistLoading,}=usePlaylistStore()
   const { authUser } = useAuthStore();
+  const navigation=useNavigate()
   useEffect(() => {
   getAllPlaylists();
 
 }, [getAllPlaylists]);
+
+
+  let filteredPlaylist = useMemo(()=>{
+    return (playlists || [])
+    .filter((playlist)=> playlist.name.toLowerCase().includes(search.toLowerCase()))
+  },[playlists , search])
+
+// pagination
+ const itemsPerPage = 5;
+  const totalPages = Math.ceil(filteredPlaylist.length / itemsPerPage);
+  const paginatedPlaylists = useMemo(() => {
+    return filteredPlaylist.slice(
+      (currentPage - 1) * itemsPerPage, // 1 * 5 = 5 ( starting index = 0)
+      currentPage * itemsPerPage // 1 * 5  = (0 , 10)
+    );
+  }, [filteredPlaylist, currentPage]);
+
+
 
 
  const handleDeletePlaylist=async(id)=>{
@@ -19,10 +43,11 @@ const PlaylistTable = () => {
   }
 
 
+  
+
 
   const handleEditProblem = (id) => {
-    console.log(id,'value in id----')
-    getPlaylistById(id)
+   navigation(`/update-playlist/${id}`)
   };
 
  if(isPlaylistsLoading||isDeletePlaylistLoading){
@@ -35,21 +60,32 @@ const PlaylistTable = () => {
 
     return (
     <>
-    <div className="overflow-x-auto rounded-xl shadow-md">
+     <div className="flex flex-wrap justify-end  items-center m-6 gap-4 ">
+        <input
+          type="text"
+          placeholder="Search by name"
+          className="input input-bordered  w-full md:w-1/4  bg-base-200"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        
+      </div>
+      
+    <div className="overflow-x-auto  m-auto rounded-xl shadow-md">
         <table className="table table-zebra table-lg bg-base-200 text-base-content">
           <thead className="bg-base-200">
             <tr>
            
               <th>Name</th>
               <th>Description</th>
-  <th>problems</th>
+              <th>No of Problems</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
 {
-    playlists.length > 0 ? (
-          playlists.map((playlist,idx)=>{
+    paginatedPlaylists.length > 0 ? (
+          paginatedPlaylists.map((playlist,idx)=>{
             
 
                return (
@@ -70,8 +106,19 @@ const PlaylistTable = () => {
                       
                       </div>
                     </td>
+                      <td>
+                      <div className="flex flex-wrap gap-1">
                      
-                  <td>
+                          <span
+                            className=" text-xl "
+                          >
+                            {playlist.problems.length}
+                          </span>
+                      
+                      </div>
+                    </td>
+                     
+                  {/* <td>
                   {
   playlist?.problems?.length > 0 ? (
     playlist.problems.map((problem, index) => (
@@ -81,7 +128,7 @@ const PlaylistTable = () => {
     <span>No problems in this playlist.</span>
   )
 }
-                  </td>
+                  </td> */}
                   
                     <td>
                       <div className="flex flex-col md:flex-row gap-2 items-start md:items-center">
@@ -98,15 +145,6 @@ const PlaylistTable = () => {
                             </button>
                           </div>
                         )}
-                          <button
-                                                  className="btn btn-sm btn-outline flex gap-2 items-center"
-                                                
-                                                   onClick={()=>openModal(playlist.id)}
-                                                >
-                                                  <Bookmark className="w-4 h-4" />
-                                                  <span className="hidden sm:inline">Save to Playlist</span>
-                                                </button>
-                       
                       </div>
                     </td>
                   </tr>
@@ -121,7 +159,27 @@ const PlaylistTable = () => {
 }
           </tbody>
         </table>
-      </div></>
+      </div>
+       <div className="flex justify-center mt-6 gap-2">
+<button
+className="btn btn-sm"
+disabled={currentPage === 1}
+onClick={()=>setCurrentPage((prev)=>prev-1)}
+>
+Prev
+</button>
+    <span className="btn btn-ghost btn-sm">
+          {currentPage} / {totalPages}
+        </span>
+ <button
+className="btn btn-sm"
+disabled={currentPage === totalPages}
+onClick={()=>setCurrentPage((prev)=>prev+1)}
+>
+Next
+</button>
+  </div>
+      </>
   )
 }
 
