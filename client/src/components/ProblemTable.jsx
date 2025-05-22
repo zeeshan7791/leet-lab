@@ -1,13 +1,18 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Bookmark, PencilIcon, Trash, TrashIcon, Plus } from "lucide-react";
+import { Bookmark, PencilIcon, Trash, TrashIcon, Plus,X } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import toast from "react-hot-toast";
 import { axiosInstance } from "../lib/axios";
+import { usePlaylistStore } from "../store/usePlaylistStore";
 
-const ProblemTable = ({ problems }) => {
+const ProblemTable = ({ problems ,getAllProblems}) => {
   const { authUser } = useAuthStore();
-   
+    const {playlists,getAllPlaylists}=usePlaylistStore()
+const [isPlaylists,setPlaylists]=useState([])
+     useEffect(() => {
+     getAllPlaylists();
+   }, [getAllPlaylists]);
   const navigation=useNavigate()
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -54,24 +59,28 @@ const ProblemTable = ({ problems }) => {
     const [isLoading , setIsLoading] = useState(false);
   
   const handleDelete = async(id)=>{
-    console.log(id,'id in delete')
     setIsLoading(true)
     try {
        const res = await axiosInstance.delete(`/problems/delete-problem/${id}`)
      
        toast.success(res.data.message)
-
-      
+       getAllProblems()
     } catch (error) {
       console.log(error)
     }
 
   }
+  const [problemId,setProblemId]=useState("") ;
 
   const handleAddToPlaylist =async (id)=>{
+    console.log(problemId,"value in problem ids")
     try {
         setLoading(true);
-      const res = await axiosInstance.delete(`/playlist/${id}`);
+       
+      const res = await axiosInstance.post(`/playlist/${id}/add-problem`,{
+        problemIds:[problemId]
+
+      });
    
       toast.success(res.data.message);
       setLoading(false);
@@ -89,14 +98,17 @@ const ProblemTable = ({ problems }) => {
   }
 
   const openModal=(id)=>{
-    document.getElementById('my_modal_1').showModal()
-    console.log(id,"playlist---------pr")
+    document.getElementById('my_modal_2').showModal()
+    setPlaylists(playlists)
+    setProblemId(id)
+  
+
   }
   return (
     <div className="w-full max-w-6xl mx-auto mt-10">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Problems</h2>
-        <button className="btn btn-primary gap-2" onClick={() =>navigation("/playlist")}>
+        <button className="btn btn-primary gap-2" onClick={() =>navigation("/create-playlist")}>
         <Plus className="w-4 h-4" />
           Create Playlist
         </button>
@@ -135,7 +147,47 @@ const ProblemTable = ({ problems }) => {
           ))}
         </select>
       </div>
-      
+<dialog id="my_modal_2" className="modal">
+  <div className="modal-box relative">
+    {/* Close button in top-right */}
+    <form method="dialog">
+      <button className="absolute cursor-pointer right-3 top-3 text-red-500">
+        <X />
+      </button> 
+    </form>
+
+    {/* Scrollable list if more than 5 items */}
+    <div className="max-h-60 overflow-y-auto space-y-2 mt-10">
+      <h2 className="text-center font-bold">My Playlists</h2>
+      <div className="mb-3 flex justify-between font-bold">
+        <p>Name</p>
+        <p>Action</p>
+      </div>
+      {isPlaylists.map((playlist) => (
+        <div
+          key={playlist.id}
+          className="border-2 border-gray-200 rounded py-2 px-1 flex justify-between items-center"
+        >
+          <p>{playlist.name}</p>
+          <button
+            className="px-4 py-2 text-white rounded bg-gray-700"
+            onClick={() => handleAddToPlaylist(playlist.id)}
+          >
+            Add
+          </button>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  {/* This handles closing when clicking outside */}
+  <form method="dialog" className="modal-backdrop">
+    <button></button>
+  </form>
+</dialog>
+
+
+
 
       <div className="overflow-x-auto rounded-xl shadow-md">
         <table className="table table-zebra table-lg bg-base-200 text-base-content">
@@ -211,7 +263,6 @@ const ProblemTable = ({ problems }) => {
                         )}
                         <button
                           className="btn btn-sm btn-outline flex gap-2 items-center"
-                        
                            onClick={()=>openModal(problem.id)}
                         >
                           <Bookmark className="w-4 h-4" />
@@ -232,6 +283,9 @@ const ProblemTable = ({ problems }) => {
           </tbody>
         </table>
       </div>
+
+      {/* Dialog */}
+   
 
   {/*  */}
   <div className="flex justify-center mt-6 gap-2">
@@ -254,6 +308,10 @@ Next
 </button>
   </div>
     </div>
+
+
+
+
   );
 };
 
