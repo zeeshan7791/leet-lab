@@ -12,7 +12,11 @@ import ProblemPage from './page/ProblemPage';
 import UpdateProblem from './page/UpdateProblem';
 import AdminRoute from './components/AdminRoute';
 import PlaylistPage from './page/PlaylistPage';
-import PlaylistProblems from './components/PlaylistProblems';
+import PlaylistProblems from './components/PlaylistProblemsTable';
+import ShowPlaylists from './page/ShowPlaylists';
+import UpdatePlaylist from './page/UpdatePlaylist';
+import ProfilePage from './page/ProfilePage';
+import PlaylistProblemsPage from './page/PlaylistProblemsPage';
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
@@ -46,17 +50,33 @@ const App = () => {
           <Route path="/add-problem"     element={authUser ? <AddProblem /> : <Navigate to="/" />}/>
           <Route path="/update-problem/:id"     element={authUser ? <UpdateProblem /> : <Navigate to="/" />}/>
               </Route>
+
+
+              {/* playlist */}
                <Route
-          path="/playlist"
+          path="/create-playlist"
           element={authUser ? <PlaylistPage/> : <Navigate to={"/login"} />}
         />
          <Route
+          path="/all-playlists"
+          element={authUser ? <ShowPlaylists/> : <Navigate to={"/login"} />}
+        />
+         <Route
+          path="/update-playlist/:id"
+          element={authUser ? <UpdatePlaylist/> : <Navigate to={"/login"} />}
+        />
+         <Route
           path="/playlist/:id"
-          element={authUser ? <PlaylistProblems/> : <Navigate to={"/login"} />}
+          element={authUser ? <PlaylistProblemsPage/> : <Navigate to={"/login"} />}
         />
     
      </Route>
-     
+     {/* profile */}
+         <Route
+          path="/profile"
+          element={authUser ? <ProfilePage/> : <Navigate to={"/login"} />}
+        />
+
       </Routes>
       
       </div>
