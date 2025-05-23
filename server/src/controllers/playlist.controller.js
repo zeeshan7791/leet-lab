@@ -4,6 +4,7 @@ export const createPlaylist = async (req, res) => {
   try {
     const userId = req.user.id;
     const { name, description } = req.body;
+    console.log(userId,'userid---------------')
     const existingPlaylist = await db.playlist.findFirst({
   where: { name, userId }
 });
@@ -69,19 +70,28 @@ export const getPlaylistDetails = async (req, res) => {
   const { playlistId } = req.params;
 console.log(playlistId,'value in playulist-------diidiiiiiiiiii')
   try {
-    const playlist = await db.playlist.findUnique({
-      where: {
-        userId: req.user.id,
-        id: playlistId,
-      },
+  const playlist = await db.playlist.findUnique({
+  where: {
+    id: playlistId,
+    userId: req.user.id,
+  },
+  include: {
+    problems: {
       include: {
-        problems: {
+        problem: {
           include: {
-            problem: true,
-          },
-        },
-      },
-    });
+            solvedBy: {
+              where: {
+                userId: req.user.id
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+});
+
     if (!playlist) {
       return res
         .status(404)
@@ -145,6 +155,13 @@ const userId=req.user.id
 export const addProblemToPlaylist = async (req, res) => {
   const { playlistId } = req.params;
   const { problemIds } = req.body;
+
+
+
+  console.log(playlistId,'feont edn----')
+  console.log(problemIds,'front problems edn------- ')
+
+
   try {
     if (!Array.isArray(problemIds) || problemIds.length === 0) {
       return res
@@ -192,6 +209,7 @@ export const deletePlaylist = async (req, res) => {
 export const removeProblemFromPlaylist = async (req, res) => {
   const { playlistId } = req.params;
   const { problemIds } = req.body;
+  console.log(problemIds,'value in problem id------')
 
   try {
     if (!Array.isArray(problemIds) || problemIds.length === 0) {
