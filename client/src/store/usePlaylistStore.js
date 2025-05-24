@@ -35,7 +35,7 @@ getPlaylistById:async(id)=>{
       const res = await axiosInstance.get(`/playlist/get-playlist/${id}`);
     
       set({playlist:res.data.playlist});
-      set({isPlaylistLoading:true});
+      set({isPlaylistLoading:false});
 
     } catch (error) {
       if (error.response?.data?.error) {
