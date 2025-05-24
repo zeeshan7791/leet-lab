@@ -17,6 +17,7 @@ import ShowPlaylists from './page/ShowPlaylists';
 import UpdatePlaylist from './page/UpdatePlaylist';
 import ProfilePage from './page/ProfilePage';
 import PlaylistProblemsPage from './page/PlaylistProblemsPage';
+import UpdateProfile from './page/UpdateProfile';
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
@@ -76,7 +77,10 @@ const App = () => {
           path="/profile"
           element={authUser ? <ProfilePage/> : <Navigate to={"/login"} />}
         />
-
+  <Route
+          path="/update-profile/:id"
+          element={authUser ? <UpdateProfile/> : <Navigate to={"/login"} />}
+        />
       </Routes>
       
       </div>
