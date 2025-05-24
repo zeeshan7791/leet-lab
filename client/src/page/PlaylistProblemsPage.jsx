@@ -5,7 +5,7 @@ const PlaylistProblemsPage = () => {
     
   return (
     <div>
-        <h1>Sunle</h1>
+        <h1></h1>
         <PlaylistProblems/>
         
         </div>

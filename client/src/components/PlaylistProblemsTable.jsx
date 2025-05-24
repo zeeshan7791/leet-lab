@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom'
 import React, { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Bookmark, PencilIcon, Trash, TrashIcon, Plus,X } from "lucide-react";
+import { Bookmark, PencilIcon, Trash, TrashIcon, Plus,X, Loader } from "lucide-react";
 import { usePlaylistStore } from '../store/usePlaylistStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { useProblemStore } from '../store/useProblemStore';
@@ -10,19 +10,54 @@ import { axiosInstance } from '../lib/axios';
 const PlaylistProblems = () => {
     const {id}=useParams()
     const navigation=useNavigate()
+      const [search, setSearch] = useState("");
+      const [difficulty, setDifficulty] = useState("ALL");
+      const [selectedTag, setSelectedTag] = useState("ALL");
+      const [currentPage, setCurrentPage] = useState(1);
      const { getAllProblems, problems, isProblemsLoading } = useProblemStore();
    
- const {playlist,getPlaylistById}=usePlaylistStore()
+ const {playlist,getPlaylistById,isPlaylistLoading}=usePlaylistStore()
   const { authUser } = useAuthStore();
 
+    const allTags = useMemo(() => {
+      if (!Array.isArray(playlist?.problems)) return [];
+  
+      const tagsSet = new Set();
+  
+      playlist?.problems.forEach((p) => p.problem.tags?.forEach((t) => tagsSet.add(t)));
+  
+      return Array.from(tagsSet);
+    }, [playlist?.problems]);
+  
+ let filteredProblems = useMemo(()=>{
+    return (playlist?.problems || [])
+    .filter((problem)=> problem.problem.title.toLowerCase().includes(search.toLowerCase()))
+    .filter((problem)=>difficulty === "ALL" ? true: problem.problem.difficulty === difficulty)
+     .filter((problem) =>
+        selectedTag === "ALL" ? true : problem.problem.tags?.includes(selectedTag)
+      )
+  },[playlist?.problems, search , difficulty , selectedTag])
 
+
+  
+    const itemsPerPage = 5;
+    const totalPages = Math.ceil(filteredProblems.length / itemsPerPage);
+    const paginatedProblems = useMemo(() => {
+      return filteredProblems.slice(
+        (currentPage - 1) * itemsPerPage, // 1 * 5 = 5 ( starting index = 0)
+        currentPage * itemsPerPage // 1 * 5  = (0 , 10)
+      );
+    }, [filteredProblems, currentPage]);
+console.log(filteredProblems,'filter in platlit----------')
     useEffect(() => {
       console.log(id,'id where I am checking')
+      setIsLoading(true)
      getPlaylistById(id);
-
+      setIsLoading(false)
    
    }, [id]);
   
+     const difficulties = ["Easy", "Medium", "Hard"];
    console.log(playlist,"problems in my playlist------")
 
    
@@ -43,12 +78,57 @@ const PlaylistProblems = () => {
     } catch (error) {
       console.log(error)
     }
+    finally{
+      setIsLoading(false)
+    }
 
   }
+
+   if(isPlaylistLoading){
+
+    return (
+      <div className="flex items-center justify-center h-screen">
+          <Loader className="size-10 animate-spin"/>
+      </div>
+    )
+  }
   return (
-    <div>PlaylistProblems
-        <h1>{id}</h1>
+    <div>
+        <h1 className='text-center text-xl text-primary mb-2'>Problems in {playlist?.name} playlist</h1>
         <div className="overflow-x-auto rounded-xl shadow-md">
+           <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
+        <input
+          type="text"
+          placeholder="Search by title"
+          className="input input-bordered w-full md:w-1/3 bg-base-200"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <select
+          className="select select-bordered bg-base-200"
+          value={difficulty}
+          onChange={(e) => setDifficulty(e.target.value)}
+        >
+          <option value="ALL">All Difficulties</option>
+          {difficulties.map((diff) => (
+            <option key={diff} value={diff}>
+              {diff.charAt(0).toUpperCase() + diff.slice(1).toLowerCase()}
+            </option>
+          ))}
+        </select>
+        <select
+          className="select select-bordered bg-base-200"
+          value={selectedTag}
+          onChange={(e) => setSelectedTag(e.target.value)}
+        >
+          <option value="ALL">All Tags</option>
+          {allTags.map((tag) => (
+            <option key={tag} value={tag}>
+              {tag}
+            </option>
+          ))}
+        </select>
+      </div>
                <table className="table table-zebra table-lg bg-base-200 text-base-content">
                  <thead className="bg-base-200">
                    <tr>
@@ -61,8 +141,8 @@ const PlaylistProblems = () => {
                  </thead>
                  <tbody>
        {
-           playlist?.problems.length > 0 ? (
-                 playlist?.problems.map((problem)=>{
+           paginatedProblems?.length > 0 ? (
+                 paginatedProblems?.map((problem)=>{
        
                    const isSolved = problem.problem.solvedBy.some((user)=>user.userId === authUser?.id);
        
@@ -135,8 +215,29 @@ const PlaylistProblems = () => {
        }
                  </tbody>
                </table>
+               
              </div>
+              <div className="flex justify-center mt-6 gap-2">
+<button
+className="btn btn-sm"
+disabled={currentPage === 1}
+onClick={()=>setCurrentPage((prev)=>prev-1)}
+>
+Prev
+</button>
+    <span className="btn btn-ghost btn-sm">
+          {currentPage} / {totalPages}
+        </span>
+ <button
+className="btn btn-sm"
+disabled={currentPage === totalPages}
+onClick={()=>setCurrentPage((prev)=>prev+1)}
+>
+Next
+</button>
+  </div>
     </div>
+    
   )
 }
 
