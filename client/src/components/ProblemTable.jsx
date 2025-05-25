@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { axiosInstance } from "../lib/axios";
 import { usePlaylistStore } from "../store/usePlaylistStore";
 
-const ProblemTable = ({ problems ,getAllProblems}) => {
+const ProblemTable = ({ problems ,getAllProblems,deleteProblemById}) => {
   const { authUser } = useAuthStore();
     const {playlists,getAllPlaylists}=usePlaylistStore()
 const [isPlaylists,setPlaylists]=useState([])
@@ -59,15 +59,8 @@ const [isPlaylists,setPlaylists]=useState([])
     const [isLoading , setIsLoading] = useState(false);
   
   const handleDelete = async(id)=>{
-    setIsLoading(true)
-    try {
-       const res = await axiosInstance.delete(`/problems/delete-problem/${id}`)
-     
-       toast.success(res.data.message)
-       getAllProblems()
-    } catch (error) {
-      console.log(error)
-    }
+   deleteProblemById(id)
+   
 
   }
   const [problemId,setProblemId]=useState("") ;

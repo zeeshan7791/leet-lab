@@ -52,4 +52,20 @@ console.log(res.data,'value in data')
       toast.error("Error getting solved problems");
     }
   },
+   deleteProblemById: async (id) => {
+    try {
+       set({ isProblemLoading: true });
+          const res = await axiosInstance.delete(`/problems/delete-problem/${id}`)
+        
+          toast.success(res.data.message)
+           set({ isProblemLoading: false });
+         
+       } catch (error) {
+         toast.error(error.message)
+       }
+       finally{
+         set({ isProblemLoading: false });
+       }
+  },
+ 
 }));
