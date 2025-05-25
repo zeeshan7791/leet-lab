@@ -14,9 +14,9 @@ const PlaylistProblems = () => {
       const [difficulty, setDifficulty] = useState("ALL");
       const [selectedTag, setSelectedTag] = useState("ALL");
       const [currentPage, setCurrentPage] = useState(1);
-     const { getAllProblems, problems, isProblemsLoading } = useProblemStore();
+     const { getAllProblems, problems, isProblemsLoading, } = useProblemStore();
    
- const {playlist,getPlaylistById,isPlaylistLoading}=usePlaylistStore()
+ const {playlist,getPlaylistById,isPlaylistLoading,deleteProblemFromPlaylist}=usePlaylistStore()
   const { authUser } = useAuthStore();
 
     const allTags = useMemo(() => {
@@ -48,7 +48,7 @@ const PlaylistProblems = () => {
         currentPage * itemsPerPage // 1 * 5  = (0 , 10)
       );
     }, [filteredProblems, currentPage]);
-console.log(filteredProblems,'filter in platlit----------')
+
     useEffect(() => {
       console.log(id,'id where I am checking')
       setIsLoading(true)
@@ -67,20 +67,7 @@ console.log(filteredProblems,'filter in platlit----------')
   const [loading, setIsLoading] = useState(false);
 
    const handleDelete = async(id)=>{
-    setIsLoading(true)
-    try {
-       const res = await axiosInstance.post(`/playlist/${playlist.id}/remove-problem`,{
-          problemIds:[id]
-       })
-   setIsLoading(false)
-       toast.success(res.data.message)
-     
-    } catch (error) {
-      console.log(error)
-    }
-    finally{
-      setIsLoading(false)
-    }
+    deleteProblemFromPlaylist(id,playlist)
 
   }
 

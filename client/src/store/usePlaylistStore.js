@@ -8,6 +8,7 @@ export const usePlaylistStore=create((set)=>({
     isPlaylistsLoading:false,
     isPlaylistLoading:false,
     isDeletePlaylistLoading:false,
+    isProblemLoading:false,
   
 getAllPlaylists:async(id)=>{
    try {
@@ -62,5 +63,25 @@ deletePlaylist:async(id)=>{
       set({isDeletePlaylistLoading:false});
     }
 },
+ deleteProblemFromPlaylist:async(id,playlist)=>{
+  console.log(id,'deleteProblemFromPlaylist=======')
+     set({ isProblemLoading: true });
+      try {
+         const res = await axiosInstance.post(`/playlist/${playlist.id}/remove-problem`,{
+            problemIds:[id]
+         })
+       set({ isProblemLoading: false });
+
+         toast.success(res.data.message)
+       
+      } catch (error) {
+        console.log(error)
+      }
+      finally{
+           set({ isProblemLoading: false });
+
+      }
+  
+    }
 
 }))
