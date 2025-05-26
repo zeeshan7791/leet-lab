@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import Layout from "../layout/Layout";
 import {
   Code,
@@ -13,16 +13,17 @@ import {
 } from "lucide-react";
 import { z } from "zod";
 import { useAuthStore } from "../store/useAuthStore";
+import { axiosInstance } from "../lib/axios";
+import toast from "react-hot-toast";
 
 const signUpSchema = z.object({
   email: z.string().email("Enter a valid email"),
-  password: z.string().min(6, "Password must be atleast of 6 characters"),
   name: z.string().min(3, "Name must be atleast of 3 characters"),
 });
 const UpdateProfile = () => {
     const[loading,setIsLoading]=useState(false)
   const { authUser } = useAuthStore();
-
+const {id}=useParams()
     const {
         register,
         handleSubmit,
@@ -32,12 +33,19 @@ const UpdateProfile = () => {
       })
     
     
-        const onSubmit = async (data)=>{
+   const onSubmit = async (data)=>{
+          console.log(data,'data----- in pupdate-===========')
        try {
-        await signup(data)
+        setIsLoading(true)
+        const res=await axiosInstance.put(`/auth/update/${id}`, data)
         console.log("signup data" , data)
+        setIsLoading(false)
+        toast.success(res.data.message)
        } catch (error) {
          console.error("SignUp failed:", error);
+       }
+       finally{
+        setIsLoading(false)
        }
       }
   return (
