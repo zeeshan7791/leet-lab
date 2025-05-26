@@ -133,5 +133,43 @@ const check = async (req, res) => {
     res.status(500).json({ error: "error while authenticating" });
   }
 };
+const updateProfile = async (req, res) => {
+  const { email, name } = req.body;
+console.log(req.body)
+  try {
+    const findUser = await db.user.findUnique({
+      where: {
+        id:req.user.id,
+      },
+    });
 
-export { register, login, logout, check };
+    if (!findUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const updatedUser = await db.user.update({
+      where: { id: findUser.id },
+      data: {
+        name: name?name: findUser.name,
+        email: email?email: findUser.email, // fixed: incorrect `email:email?description:...`
+        role: findUser.role,
+        password: findUser.password,
+        image: findUser.image,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "User updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    return res.status(500).json({ success: false, error: "Failed to update user" });
+  }
+};
+
+export { register, login, logout, check,updateProfile };
