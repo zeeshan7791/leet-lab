@@ -1,8 +1,12 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { db } from "../libs/db.js";
+import crypto from "crypto";
 
 import { UserRole } from "../generated/prisma/index.js";
+import { asyncHandler } from "../utils/async.handler.js";
+import { ApiResponse } from "../utils/api.response.js";
+import { forgotPasswordMailGenContent, sendMail } from "../utils/mail.js";
 const register = async (req, res) => {
   console.log(req.body, "body-----------------");
   const { email, name, password } = req.body;
@@ -102,6 +106,92 @@ const login = async (req, res) => {
     res.status(500).json({ error: "Error logging user" });
   }
 };
+
+
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const user = await db.user.findUnique({
+      where: {
+        email,
+      },
+    });
+   
+  console.log(user,'user in forgot')
+  if (!user) {
+    return res.status(400).json(new ApiResponse(400, "account does not exist"));
+  }
+  const resetPasswordToken = crypto.randomBytes(32).toString("hex");
+const tokenExpireTime = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+  console.log(resetPasswordToken,"-------------breake---------------")
+  console.log(tokenExpireTime,'tokenExpireTime ')
+
+  const url = `${process.env.BASE_URL}/reset-password/${resetPasswordToken}`;
+  
+  await db.user.update({
+    where: { id: user.id },
+    data: {
+      forgotPasswordToken: resetPasswordToken,
+      forgotPasswordExpiry: tokenExpireTime,
+    },
+  });
+
+  const forgotPassContent = forgotPasswordMailGenContent(user.name, url);
+  const options = {
+    email: user.email,
+    subject: "reset your password",
+    mailGenContent: forgotPassContent,
+    name: user.name,
+  };
+  await sendMail(options);
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, "An email has been sent to reset your password"),
+    );
+});
+
+
+// reset password
+ const resetPassword = asyncHandler(async (req, res) => {
+const {token}=req.params;
+  const { newPassword } = req.body;
+
+  if (!token || !newPassword) {
+    return res
+      .status(400)
+      .json(new ApiResponse(400, "Password and token are required"));
+  }
+
+  const user = await db.user.findFirst({
+    where: {
+      forgotPasswordToken: token,
+      forgotPasswordExpiry: {
+        gt: new Date(),
+      },
+    },
+  });
+
+  if (!user) {
+    return res
+      .status(400)
+      .json(new ApiResponse(400, "Token is invalid or has expired"));
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  await db.user.update({
+    where: { id: user.id },
+    data: {
+      password: hashedPassword,
+      forgotPasswordToken: null,
+      forgotPasswordExpiry: null,
+    },
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, "Password changed successfully"));
+});
 const logout = async (req, res) => {
 
   try {
@@ -172,4 +262,4 @@ console.log(req.body)
   }
 };
 
-export { register, login, logout, check,updateProfile };
+export { register, login, logout, check,updateProfile,forgotPassword,resetPassword };
