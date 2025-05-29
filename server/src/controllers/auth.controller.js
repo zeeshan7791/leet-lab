@@ -99,6 +99,7 @@ const login = async (req, res) => {
         name: user.name,
         role: user.role,
         image: user.image,
+        token:user.forgotPasswordToken,
       },
       message: "User login successfully",
     });
@@ -109,6 +110,7 @@ const login = async (req, res) => {
 
 
 const forgotPassword = asyncHandler(async (req, res) => {
+
   const { email } = req.body;
   const user = await db.user.findUnique({
       where: {
@@ -125,7 +127,7 @@ const tokenExpireTime = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes fro
   console.log(resetPasswordToken,"-------------breake---------------")
   console.log(tokenExpireTime,'tokenExpireTime ')
 
-  const url = `${process.env.BASE_URL}/reset-password/${resetPasswordToken}`;
+  const url = `${process.env.CLIENT_URL}/reset-password/${resetPasswordToken}`;
   
   await db.user.update({
     where: { id: user.id },
@@ -155,6 +157,9 @@ const tokenExpireTime = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes fro
  const resetPassword = asyncHandler(async (req, res) => {
 const {token}=req.params;
   const { newPassword } = req.body;
+  console.log(token)
+  console.log(newPassword)
+  
 
   if (!token || !newPassword) {
     return res
@@ -162,6 +167,7 @@ const {token}=req.params;
       .json(new ApiResponse(400, "Password and token are required"));
   }
 
+  
   const user = await db.user.findFirst({
     where: {
       forgotPasswordToken: token,
@@ -171,6 +177,7 @@ const {token}=req.params;
     },
   });
 
+  console.log(user,'value in user--------')
   if (!user) {
     return res
       .status(400)
