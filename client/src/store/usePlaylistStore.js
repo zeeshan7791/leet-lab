@@ -18,11 +18,13 @@ getAllPlaylists:async(id)=>{
       set({isPlaylistsLoading:false});
       set({playlists:isfilteredPlayLists});
     } catch (error) {
-      if (error.response?.data?.error) {
-        toast.error(error.response.data.error); // Show custom backend error
-      } else {
-        toast.error("Something went wrong.");
-      }
+      console.log(error)
+     set({isPlaylistsLoading:false});
+      // if (error.response?.data?.error) {
+      //   toast.error(error.response.data.error); // Show custom backend error
+      // } else {
+      //   toast.error("Something went wrong.");
+      // }
     } finally {
       set({isPlaylistsLoading:false});
     }
