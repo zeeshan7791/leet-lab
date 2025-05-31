@@ -35,48 +35,51 @@ const ForgotPassword = () => {
   };
   return (
     <>
-      <div className="h-screen flex items-center ">
-        <form onSubmit={handleSubmit(onSubmit)}>
-          {/* email */}
-           <div className="form-control w-96 ">
-                        <label className="label">
-                          <span className="label-text font-medium mb-2">Email</span>
-                        </label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Mail className="h-5 w-5 text-base-content/40" />
-                          </div>
-                          <input
-                            type="email"
-                            {...register("email")}
-                            className={`input input-bordered w-full pl-10 ${
-                              errors.email ? "input-error" : ""
-                            }`}
-                            placeholder="you@example.com"
-                          />
-                        </div>
-                        {errors.email && (
-                          <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
-                        )}
-                      </div>
+   <div className="h-screen w-full flex items-center justify-center bg-gradient-to-br from-[#422AD5]/10 via-white to-[#422AD5]/30 px-4">
+  <form
+    onSubmit={handleSubmit(onSubmit)}
+    className="bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-xl w-full max-w-md"
+  >
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="btn btn-primary w-full mt-2"
-            disabled={isforgotPassword}
-          >
-            {isforgotPassword ? (
-              <>
-                <Loader2 className="h-5 w-5 animate-spin" />
-                Loading...
-              </>
-            ) : (
-              "Verify your email"
-            )}
-          </button>
-        </form>
+    {/* Email Field */}
+    <div className="form-control w-full">
+     
+      <div className="relative">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <Mail className="h-5 w-5 text-[#422AD5]/50" />
+        </div>
+        <input
+          type="email"
+          {...register("email")}
+          className={`input input-bordered w-full pl-10 rounded-xl ${
+            errors.email ? "input-error" : ""
+          }`}
+          placeholder="you@example.com"
+        />
       </div>
+      {errors.email && (
+        <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+      )}
+    </div>
+
+    {/* Submit Button */}
+    <button
+      type="submit"
+      disabled={isforgotPassword}
+      className="btn mt-6 w-full bg-[#423ffc] hover:bg-[#3a23c2] text-white font-semibold rounded-xl transition"
+    >
+      {isforgotPassword ? (
+        <>
+          <Loader2 className="h-5 w-5 animate-spin mr-2" />
+          Loading...
+        </>
+      ) : (
+        "Use your email"
+      )}
+    </button>
+  </form>
+</div>
+
     </>
   );
 };
