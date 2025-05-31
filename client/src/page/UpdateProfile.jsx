@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import Layout from "../layout/Layout";
 import {
   Code,
@@ -22,7 +22,9 @@ const signUpSchema = z.object({
 });
 const UpdateProfile = () => {
     const[loading,setIsLoading]=useState(false)
-  const { authUser } = useAuthStore();
+   const navigation=useNavigate()
+    
+  const { authUser,updateProfile,isUpdateUserLoading,checkAuth } = useAuthStore();
 const {id}=useParams()
     const {
         register,
@@ -35,126 +37,86 @@ const {id}=useParams()
     
    const onSubmit = async (data)=>{
           console.log(data,'data----- in pupdate-===========')
-       try {
-        setIsLoading(true)
-        const res=await axiosInstance.put(`/auth/update/${id}`, data)
-        console.log("signup data" , data)
-        setIsLoading(false)
-        toast.success(res.data.message)
-       } catch (error) {
-         console.error("SignUp failed:", error);
-       }
-       finally{
-        setIsLoading(false)
-       }
+      try {
+      await updateProfile(id,data)
+      checkAuth()
+      navigation('/')
+      
+    } catch (error) {
+      console.error("profile updation failed" , error)
+    }
       }
   return (
-     <div className="flex flex-col w-full items-center h-screen">
-      <Layout/>
-    <div>  <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            
-                {/* name */}
-                <div className="form-control  w-88">
-         
-                  <label className="label">
-                    <span className="label-text font-medium">Name</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Code className="h-5 w-5 text-base-content/40" />
-                    </div>
-                    <input
-                      type="text"
-                      {...register("name")}
-                      className={`input input-bordered w-full pl-10 ${
-                        errors.name ? "input-error" : ""
-                      }`}
-                      defaultValue={authUser?.name}
-                      placeholder="John Doe"
-                    />
-                  </div>
-                  {errors.name && (
-                    <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
-                  )}              
-                </div>
-    
-                {/* Email */}
-                <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-medium">Email</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="h-5 w-5 text-base-content/40" />
-                    </div>
-                    <input
-                      type="email"
-                      {...register("email")}
-                      className={`input input-bordered w-full pl-10 ${
-                        errors.email ? "input-error" : ""
-                      }`}
-                      defaultValue={authUser?.email}
+    <div className="min-h-screen w-full bg-gradient-to-br from-[#422AD5]/10 via-white to-[#422AD5]/20 flex flex-col items-center px-4 py-10">
+  <Layout />
 
-                      placeholder="you@example.com"
-                    />
-                  </div>
-                  {errors.email && (
-                    <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
-                  )}
-                </div>
-    
-                {/* Password */}
-                {/* <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-medium">Password</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Lock className="h-5 w-5 text-base-content/40" />
-                    </div>
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      {...register("password")}
-                      className={`input input-bordered w-full pl-10 ${
-                        errors.password ? "input-error" : ""
-                      }`}
-                      placeholder="••••••••"
-                    />
-                    <button
-                      type="button"
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-5 w-5 text-base-content/40" />
-                      ) : (
-                        <Eye className="h-5 w-5 text-base-content/40" />
-                      )}
-                    </button>
-                  </div>
-                  {errors.password && (
-                    <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>
-                  )}
-                </div>
-     */}
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  className="btn btn-primary w-full"
-                 disabled={loading}
-                >
-                   {loading ? (
-                    <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      Loading...
-                    </>
-                  ) : (
-                    "Update Profile"
-                  )}
-                </button>
-              </form>
-              </div>
-               </div>
+  <div className="bg-white/90 backdrop-blur-md shadow-lg rounded-3xl p-8 w-full max-w-lg mt-10">
+    <h2 className="text-2xl font-bold text-[#422AD5] text-center mb-6">Update Profile</h2>
+
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* Name */}
+      <div className="form-control w-full">
+        <label className="label">
+          <span className="label-text font-medium text-[#422AD5]">Name</span>
+        </label>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Code className="h-5 w-5 text-[#422AD5]/50" />
+          </div>
+          <input
+            type="text"
+            {...register("name")}
+            defaultValue={authUser?.name}
+            placeholder="John Doe"
+            className={`input input-bordered w-full pl-10 rounded-xl ${
+              errors.name ? "input-error" : ""
+            }`}
+          />
+        </div>
+        {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
+      </div>
+
+      {/* Email */}
+      <div className="form-control w-full">
+        <label className="label">
+          <span className="label-text font-medium text-[#422AD5]">Email</span>
+        </label>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Mail className="h-5 w-5 text-[#422AD5]/50" />
+          </div>
+          <input
+            type="email"
+            {...register("email")}
+            defaultValue={authUser?.email}
+            placeholder="you@example.com"
+            className={`input input-bordered w-full pl-10 rounded-xl ${
+              errors.email ? "input-error" : ""
+            }`}
+          />
+        </div>
+        {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
+      </div>
+
+      {/* Submit Button */}
+      <button
+        type="submit"
+        className="btn w-full bg-[#423ffc] hover:bg-[#3a23c2] text-white font-medium rounded-xl"
+        disabled={isUpdateUserLoading}
+      >
+        {isUpdateUserLoading ? (
+          <>
+            <Loader2 className="h-5 w-5 animate-spin mr-2" />
+            Loading...
+          </>
+        ) : (
+          "Update Profile"
+        )}
+      </button>
+    </form>
+  </div>
+</div>
+
   )
 }
 
