@@ -9,6 +9,7 @@ export const useAuthStore = create((set) => ({
   isCheckingAuth: false,
   isforgotPassword:false,
   isResetPassword:false,
+  isUpdateUserLoading:false,
 
   checkAuth: async () => {
     set({ isCheckingAuth: true });
@@ -65,6 +66,23 @@ export const useAuthStore = create((set) => ({
       console.log("Error logging out", error);
       toast.error("Error logging out");
     }
+  },
+  updateProfile:async(id,data)=>{
+    try {
+            set({ isUpdateUserLoading: true });
+            const res=await axiosInstance.put(`/auth/update/${id}`, data)
+            console.log("ipdate profile data" , data)
+           set({ isUpdateUserLoading: false });
+
+            toast.success(res.data.message)
+           } catch (error) {
+             console.error("Profile Updation failed:", error);
+           }
+           finally{
+          set({ isUpdateUserLoading: false });
+
+           }
+
   },
     forgotPassword: async (email) => {
     set({ isforgotPassword: true });
